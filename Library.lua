@@ -1409,9 +1409,7 @@ do
 
                 local Key = KeyPicker.Value;
                 if Key == 'MB1' or Key == 'MB2' or Key == 'Touch' then
-                    return Key == 'MB1' and InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-                        or Key == 'MB2' and InputService:IsMouseButton
-Pressed(Enum.UserInputType.MouseButton2)
+                                        return Key == 'MB1' and InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) or Key == 'MB2' and InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
                         or Key == 'Touch' and true
                 else
                     return InputService:IsKeyDown(Enum.KeyCode[KeyPicker.Value]);
@@ -1548,13 +1546,9 @@ Pressed(Enum.UserInputType.MouseButton2)
     Options[Idx] = KeyPicker;
 
     return self;
-end;
-
 BaseAddons.__index = Funcs;
 BaseAddons.__namecall = function(Table, Key, ...)
     return Funcs[Key](...);
-end;
-
 end;
 
 local BaseGroupbox = {};
@@ -4008,8 +4002,6 @@ end)
 local _origUpdate = Library.UpdateColorsUsingRegistry
 Library.UpdateColorsUsingRegistry = function(self)
     _origUpdate(self)
-end
-
 end
 
 getgenv().Library = Library
