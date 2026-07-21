@@ -6,6 +6,7 @@ local PreviewManager = {} do
 
     local RunService = game:GetService("RunService")
     local UserInputService = game:GetService("UserInputService")
+    local CoreGui = game:GetService("CoreGui")
 
     local StateColors = {
         Knocked = Color3.fromRGB(200, 100, 0),
@@ -45,29 +46,39 @@ local PreviewManager = {} do
         return nil
     end
 
+    local previewGui
     local previewFrame
     local previewObjs = {}
 
     local function createPreviewGui()
-        if previewFrame then return end
+        if previewGui then return end
         local Library = PreviewManager.Library
 
-        -- LINORIA UI CONTAINER
+        -- Dedicated ScreenGui with IgnoreGuiInset = true to fix coordinate mismatch
+        previewGui = Library:Create("ScreenGui", {
+            Name = "IrreverencePreview",
+            ResetOnSpawn = false,
+            DisplayOrder = 9999,
+            IgnoreGuiInset = true,
+            Parent = CoreGui,
+            Enabled = false,
+        })
+
         previewFrame = Library:Create("Frame", {
             Name = "PreviewBox",
             Size = UDim2.new(0, 140, 0, 260),
             Position = UDim2.new(0.5, -70, 0.5, -130),
-            BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+            BackgroundColor3 = Library.BackgroundColor,
             BorderColor3 = Library.OutlineColor,
             BorderMode = Enum.BorderMode.Inset,
             ZIndex = 50,
-            Parent = Library.ScreenGui,
+            Parent = previewGui,
         })
         Library:AddToRegistry(previewFrame, {
             BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
         })
-        
+
         -- Custom drag logic
         local dragging = false
         local dragInput, mousePos, framePos
@@ -138,7 +149,6 @@ local PreviewManager = {} do
     end
 
     local function createPreviewObj()
-        -- DRAWING API ESP ELEMENTS ONLY
         local obj = {}
         
         obj.Cham = Drawing.new("Square")
@@ -331,8 +341,8 @@ local PreviewManager = {} do
 
     local function updatePreview()
         if not PreviewManager.Enabled then return end
-        if not previewFrame then createPreviewGui() end
-        if not previewFrame.Visible then previewFrame.Visible = true end
+        if not previewGui then createPreviewGui() end
+        if not previewGui.Enabled then previewGui.Enabled = true end
 
         local role = PreviewManager.Role
         local survCfg = getRoleCfg("Survivor")
@@ -346,13 +356,12 @@ local PreviewManager = {} do
         local framePos = previewFrame.AbsolutePosition
         local frameSize = previewFrame.AbsoluteSize
         
-        -- Fixed Y math to perfectly center inside the 260px frame
-        -- Title bar is 20px. Remaining space is 240px.
-        -- Total ESP height is 208px.
-        -- Top padding = (240 - 208) / 2 = 16px.
-        -- Box Y = Frame Y + Title Bar (20) + Top Padding (16) + Name Height (16) = Frame Y + 52
-        local boxY = framePos.Y + 52
-        local frameBottomY = framePos.Y + frameSize.Y
+        -- Perfectly center the ESP block vertically inside the frame
+        local espTotalHeight = 208
+        local availableHeight = frameSize.Y - 20
+        local topPadding = (availableHeight - espTotalHeight) / 2
+        local boxY = framePos.Y + 20 + topPadding + 16
+        local frameBottomY = framePos.Y + frameSize.Y - 10
 
         if role == "Survivor" or role == "Both" then
             if not previewObjs.Survivor then previewObjs.Survivor = createPreviewObj() end
@@ -376,7 +385,7 @@ local PreviewManager = {} do
         if renderConn then return end
         renderConn = RunService.RenderStepped:Connect(function()
             if not PreviewManager.Enabled then
-                if previewFrame then previewFrame.Visible = false end
+                if previewGui then previewGui.Enabled = false end
                 for _, obj in pairs(previewObjs) do hidePreviewObj(obj) end
                 return
             end
@@ -397,7 +406,7 @@ local PreviewManager = {} do
         if state then
             startRenderLoop()
         else
-            if previewFrame then previewFrame.Visible = false end
+            if previewGui then previewGui.Enabled = false end
             for _, obj in pairs(previewObjs) do hidePreviewObj(obj) end
         end
     end
@@ -429,7 +438,7 @@ local PreviewManager = {} do
 
     function PreviewManager:Unload()
         if renderConn then renderConn:Disconnect() renderConn = nil end
-        if previewFrame then previewFrame:Destroy() previewFrame = nil end
+        if previewGui then previewGui:Destroy() previewGui = nil end
         
         for _, obj in pairs(previewObjs) do
             destroyPreviewObj(obj)
