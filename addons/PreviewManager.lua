@@ -30,6 +30,8 @@ local PreviewManager = {} do
                 health = PreviewManager.Config.SurvivorHealth,
                 healthNumber = PreviewManager.Config.SurvivorHealthNumber,
                 tracers = PreviewManager.Config.SurvivorTracers,
+                chams = PreviewManager.Config.SurvivorChams,
+                chamsOpacity = PreviewManager.Config.SurvivorChamsOpacity,
                 color = PreviewManager.Config.SurvivorColor,
             }
         elseif role == "Killer" then
@@ -42,6 +44,8 @@ local PreviewManager = {} do
                 health = PreviewManager.Config.KillerHealth,
                 healthNumber = PreviewManager.Config.KillerHealthNumber,
                 tracers = PreviewManager.Config.KillerTracers,
+                chams = PreviewManager.Config.KillerChams,
+                chamsOpacity = PreviewManager.Config.KillerChamsOpacity,
                 color = PreviewManager.Config.KillerColor,
             }
         end
@@ -115,10 +119,19 @@ local PreviewManager = {} do
         local function createDummyUI()
             local dummy = {}
 
+            dummy.Cham = Library:Create("Frame", {
+                Name = "Cham",
+                BorderSizePixel = 0,
+                BackgroundTransparency = 1,
+                ZIndex = 2,
+                Parent = previewFrame,
+            })
+
             dummy.Box = Library:Create("Frame", {
                 Name = "Box",
-                BorderSizePixel = 1,
+                BorderSizePixel = 2,
                 BackgroundTransparency = 1,
+                ZIndex = 3,
                 Parent = previewFrame,
             })
 
@@ -129,6 +142,7 @@ local PreviewManager = {} do
                 TextSize = Library.FontSize + 2,
                 TextStrokeTransparency = 0,
                 TextXAlignment = Enum.TextXAlignment.Center,
+                ZIndex = 4,
                 Parent = previewFrame,
             })
 
@@ -139,6 +153,7 @@ local PreviewManager = {} do
                 TextSize = Library.FontSize,
                 TextStrokeTransparency = 0,
                 TextXAlignment = Enum.TextXAlignment.Center,
+                ZIndex = 4,
                 Parent = previewFrame,
             })
 
@@ -149,6 +164,7 @@ local PreviewManager = {} do
                 TextSize = Library.FontSize,
                 TextStrokeTransparency = 0,
                 TextXAlignment = Enum.TextXAlignment.Center,
+                ZIndex = 4,
                 Parent = previewFrame,
             })
 
@@ -156,12 +172,14 @@ local PreviewManager = {} do
                 Name = "HealthBg",
                 BorderSizePixel = 0,
                 BackgroundColor3 = Color3.new(0, 0, 0),
+                ZIndex = 3,
                 Parent = previewFrame,
             })
 
             dummy.HealthFill = Library:Create("Frame", {
                 Name = "HealthFill",
                 BorderSizePixel = 0,
+                ZIndex = 4,
                 Parent = dummy.HealthBg,
             })
 
@@ -172,12 +190,14 @@ local PreviewManager = {} do
                 TextSize = Library.FontSize - 1,
                 TextStrokeTransparency = 0,
                 TextXAlignment = Enum.TextXAlignment.Right,
+                ZIndex = 4,
                 Parent = previewFrame,
             })
 
             dummy.Tracer = Library:Create("Frame", {
                 Name = "Tracer",
                 BorderSizePixel = 0,
+                ZIndex = 2,
                 Parent = previewFrame,
             })
 
@@ -206,10 +226,21 @@ local PreviewManager = {} do
         local stateText = role == "Survivor" and "Medkit" or ""
         local stateColor = StateColors.Item
 
+        if cfg.chams and cfg.chams.Value then
+            dummy.Cham.Size = UDim2.new(0, boxWidth, 0, boxHeight)
+            dummy.Cham.Position = UDim2.new(0, boxX - boxWidth/2, 0, boxY - boxHeight/2)
+            dummy.Cham.BackgroundColor3 = color
+            dummy.Cham.BackgroundTransparency = 1 - (cfg.chamsOpacity and cfg.chamsOpacity.Value or 0.5)
+            dummy.Cham.Visible = true
+        else
+            dummy.Cham.Visible = false
+        end
+
         if cfg.box and cfg.box.Value then
             dummy.Box.Size = UDim2.new(0, boxWidth, 0, boxHeight)
             dummy.Box.Position = UDim2.new(0, boxX - boxWidth/2, 0, boxY - boxHeight/2)
             dummy.Box.BorderColor3 = color
+            dummy.Box.BackgroundColor3 = color
             dummy.Box.BackgroundTransparency = (cfg.boxFilled and cfg.boxFilled.Value) and 0.5 or 1
             dummy.Box.Visible = true
         else
@@ -285,6 +316,7 @@ local PreviewManager = {} do
 
     local function hideDummy(dummy)
         if not dummy then return end
+        dummy.Cham.Visible = false
         dummy.Box.Visible = false
         dummy.Name.Visible = false
         dummy.Distance.Visible = false
