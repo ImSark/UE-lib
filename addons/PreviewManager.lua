@@ -19,7 +19,6 @@ local PreviewManager = {} do
         if not PreviewManager.Config then return nil end
         if role == "Survivor" then
             return {
-                enabled = PreviewManager.Config.SurvivorEnabled,
                 box = PreviewManager.Config.SurvivorBox,
                 boxFilled = PreviewManager.Config.SurvivorBoxFilled,
                 name = PreviewManager.Config.SurvivorName,
@@ -33,7 +32,6 @@ local PreviewManager = {} do
             }
         elseif role == "Killer" then
             return {
-                enabled = PreviewManager.Config.KillerEnabled,
                 box = PreviewManager.Config.KillerBox,
                 boxFilled = PreviewManager.Config.KillerBoxFilled,
                 name = PreviewManager.Config.KillerName,
@@ -49,14 +47,21 @@ local PreviewManager = {} do
         return nil
     end
 
+    -- Linoria UI Elements
     local previewGui
     local previewFrame
+    local titleBar
+    local accentBar
+    local titleLabel
+
+    -- Drawing API Elements
     local previewObjs = {}
 
     local function createPreviewGui()
         if previewGui then return end
         local Library = PreviewManager.Library
 
+        -- LINORIA UI CONTAINER
         previewGui = Library:Create("ScreenGui", {
             Name = "IrreverencePreview",
             ResetOnSpawn = false,
@@ -81,7 +86,7 @@ local PreviewManager = {} do
             BorderColor3 = "OutlineColor",
         })
 
-        local titleBar = Library:Create("Frame", {
+        titleBar = Library:Create("Frame", {
             Name = "TitleBar",
             Size = UDim2.new(1, 0, 0, 20),
             BackgroundColor3 = Library.BackgroundColor,
@@ -92,7 +97,7 @@ local PreviewManager = {} do
             BackgroundColor3 = "BackgroundColor",
         })
 
-        local accentBar = Library:Create("Frame", {
+        accentBar = Library:Create("Frame", {
             Name = "AccentBar",
             Size = UDim2.new(1, 0, 0, 2),
             BackgroundColor3 = Library.AccentColor,
@@ -103,7 +108,7 @@ local PreviewManager = {} do
             BackgroundColor3 = "AccentColor",
         })
 
-        local titleLabel = Library:CreateLabel({
+        titleLabel = Library:CreateLabel({
             Size = UDim2.new(1, -10, 1, 0),
             Position = UDim2.new(0, 5, 0, 0),
             Text = "ESP Preview (Drag me)",
@@ -114,6 +119,7 @@ local PreviewManager = {} do
     end
 
     local function createPreviewObj()
+        -- DRAWING API ESP ELEMENTS
         local obj = {}
         
         obj.Cham = Drawing.new("Square")
