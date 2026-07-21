@@ -46,14 +46,13 @@ local PreviewManager = {} do
     end
 
     local previewGui
-    local previewFrame
+    local dragFrame
     local previewObjs = {}
 
     local function createPreviewGui()
         if previewGui then return end
         local Library = PreviewManager.Library
 
-        -- LINORIA UI CONTAINER
         previewGui = Library:Create("ScreenGui", {
             Name = "IrreverencePreview",
             ResetOnSpawn = false,
@@ -62,54 +61,48 @@ local PreviewManager = {} do
             Enabled = false,
         })
 
-        previewFrame = Library:Create("Frame", {
-            Name = "PreviewBox",
+        -- Transparent Linoria UI frame to handle dragging
+        dragFrame = Library:Create("Frame", {
+            Name = "DragHandler",
             Size = UDim2.new(0, 140, 0, 260),
             Position = UDim2.new(0.5, -70, 0.5, -130),
-            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-            BackgroundTransparency = 0.2,
-            BorderColor3 = Library.OutlineColor,
-            BorderMode = Enum.BorderMode.Inset,
+            BackgroundTransparency = 1,
+            Active = true,
             Parent = previewGui,
         })
-        Library:MakeDraggable(previewFrame, 20, false)
-
-        local titleBar = Library:Create("Frame", {
-            Name = "TitleBar",
-            Size = UDim2.new(1, 0, 0, 20),
-            BackgroundColor3 = Library.BackgroundColor,
-            BorderSizePixel = 0,
-            Parent = previewFrame,
-        })
-        Library:AddToRegistry(titleBar, {
-            BackgroundColor3 = "BackgroundColor",
-        })
-
-        local accentBar = Library:Create("Frame", {
-            Name = "AccentBar",
-            Size = UDim2.new(1, 0, 0, 2),
-            BackgroundColor3 = Library.AccentColor,
-            BorderSizePixel = 0,
-            Parent = titleBar,
-        })
-        Library:AddToRegistry(accentBar, {
-            BackgroundColor3 = "AccentColor",
-        })
-
-        local titleLabel = Library:CreateLabel({
-            Size = UDim2.new(1, -10, 1, 0),
-            Position = UDim2.new(0, 5, 0, 0),
-            Text = "ESP Preview (Drag me)",
-            TextXAlignment = Enum.TextXAlignment.Left,
-            TextSize = Library.FontSize,
-            Parent = titleBar,
-        })
+        Library:MakeDraggable(dragFrame, 20, false)
     end
 
     local function createPreviewObj()
-        -- DRAWING API ESP ELEMENTS ONLY
         local obj = {}
         
+        -- Drawing API Background (matches Linoria style)
+        obj.Bg = Drawing.new("Square")
+        obj.Bg.Thickness = 0
+        obj.Bg.Filled = true
+        obj.Bg.Transparency = 0.2
+        obj.Bg.Color = Color3.fromRGB(0, 0, 0)
+        obj.Bg.Visible = false
+        
+        obj.TitleBg = Drawing.new("Square")
+        obj.TitleBg.Thickness = 0
+        obj.TitleBg.Filled = true
+        obj.TitleBg.Visible = false
+        
+        obj.AccentBar = Drawing.new("Square")
+        obj.AccentBar.Thickness = 0
+        obj.AccentBar.Filled = true
+        obj.AccentBar.Visible = false
+        
+        obj.TitleText = Drawing.new("Text")
+        obj.TitleText.Size = 14
+        obj.TitleText.Center = false
+        obj.TitleText.Outline = false
+        obj.TitleText.Font = 2
+        obj.TitleText.Text = "ESP Preview (Drag me)"
+        obj.TitleText.Visible = false
+        
+        -- ESP Elements
         obj.Cham = Drawing.new("Square")
         obj.Cham.Thickness = 0
         obj.Cham.Filled = true
@@ -172,6 +165,10 @@ local PreviewManager = {} do
 
     local function hidePreviewObj(obj)
         if not obj then return end
+        obj.Bg.Visible = false
+        obj.TitleBg.Visible = false
+        obj.AccentBar.Visible = false
+        obj.TitleText.Visible = false
         obj.Cham.Visible = false
         obj.Box.Visible = false
         obj.Name.Visible = false
@@ -186,6 +183,10 @@ local PreviewManager = {} do
     local function destroyPreviewObj(obj)
         if not obj then return end
         pcall(function()
+            obj.Bg:Remove()
+            obj.TitleBg:Remove()
+            obj.AccentBar:Remove()
+            obj.TitleText:Remove()
             obj.Cham:Remove()
             obj.Box:Remove()
             obj.Name:Remove()
@@ -198,9 +199,30 @@ local PreviewManager = {} do
         end)
     end
 
-    local function drawPreviewESP(obj, cfg, role, centerX, boxY, frameBottomY)
+    local function drawPreviewESP(obj, cfg, role, centerX, boxY, frameBottomY, framePos, frameSize)
         if not obj or not cfg then return end
+        local Library = PreviewManager.Library
         
+        -- Draw Linoria-styled background dynamically
+        obj.Bg.Size = Vector2.new(frameSize.X, frameSize.Y)
+        obj.Bg.Position = framePos
+        obj.Bg.Visible = true
+        
+        obj.TitleBg.Size = Vector2.new(frameSize.X, 20)
+        obj.TitleBg.Position = framePos
+        obj.TitleBg.Color = Library.BackgroundColor
+        obj.TitleBg.Visible = true
+        
+        obj.AccentBar.Size = Vector2.new(frameSize.X, 2)
+        obj.AccentBar.Position = Vector2.new(framePos.X, framePos.Y + 20)
+        obj.AccentBar.Color = Library.AccentColor
+        obj.AccentBar.Visible = true
+        
+        obj.TitleText.Position = Vector2.new(framePos.X + 5, framePos.Y + 2)
+        obj.TitleText.Color = Library.FontColor
+        obj.TitleText.Visible = true
+        
+        -- Draw ESP
         local boxHeight = 160
         local boxWidth = 96
         local boxX = centerX
@@ -308,25 +330,24 @@ local PreviewManager = {} do
         local killCfg = getRoleCfg("Killer")
 
         local targetSizeX = (role == "Both") and 280 or 140
-        if previewFrame.Size.X.Offset ~= targetSizeX then
-            previewFrame.Size = UDim2.new(0, targetSizeX, 0, 260)
+        if dragFrame.Size.X.Offset ~= targetSizeX then
+            dragFrame.Size = UDim2.new(0, targetSizeX, 0, 260)
         end
 
-        local framePos = previewFrame.AbsolutePosition
-        local frameSize = previewFrame.AbsoluteSize
+        local framePos = dragFrame.AbsolutePosition
+        local frameSize = dragFrame.AbsoluteSize
         
         -- Perfectly center the ESP block vertically inside the frame
-        -- Total ESP height (Name + Box + Distance + State) = 16 + 160 + 16 + 16 = 208
-        -- Frame is 260 tall. Title bar is 20. Remaining is 240.
-        -- Top padding = (240 - 208) / 2 = 16.
-        -- So Box Y = Frame Y + Title Bar (20) + Top Padding (16) + Name Height (16) = Frame Y + 52
-        local boxY = framePos.Y + 52
-        local frameBottomY = framePos.Y + frameSize.Y
+        local espTotalHeight = 208
+        local availableHeight = frameSize.Y - 20
+        local topPadding = (availableHeight - espTotalHeight) / 2
+        local boxY = framePos.Y + 20 + topPadding + 16
+        local frameBottomY = framePos.Y + frameSize.Y - 10
 
         if role == "Survivor" or role == "Both" then
             if not previewObjs.Survivor then previewObjs.Survivor = createPreviewObj() end
             local centerX = framePos.X + (role == "Both" and (frameSize.X * 0.25) or (frameSize.X * 0.5))
-            drawPreviewESP(previewObjs.Survivor, survCfg, "Survivor", centerX, boxY, frameBottomY)
+            drawPreviewESP(previewObjs.Survivor, survCfg, "Survivor", centerX, boxY, frameBottomY, framePos, frameSize)
         else
             if previewObjs.Survivor then hidePreviewObj(previewObjs.Survivor) end
         end
@@ -334,7 +355,7 @@ local PreviewManager = {} do
         if role == "Killer" or role == "Both" then
             if not previewObjs.Killer then previewObjs.Killer = createPreviewObj() end
             local centerX = framePos.X + (role == "Both" and (frameSize.X * 0.75) or (frameSize.X * 0.5))
-            drawPreviewESP(previewObjs.Killer, killCfg, "Killer", centerX, boxY, frameBottomY)
+            drawPreviewESP(previewObjs.Killer, killCfg, "Killer", centerX, boxY, frameBottomY, framePos, frameSize)
         else
             if previewObjs.Killer then hidePreviewObj(previewObjs.Killer) end
         end
