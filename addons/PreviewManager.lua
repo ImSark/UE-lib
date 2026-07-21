@@ -87,8 +87,8 @@ local PreviewManager = {} do
 
         previewFrame = Library:Create("Frame", {
             Name = "PreviewBox",
-            Size = UDim2.new(0, 200, 0, 320),
-            Position = UDim2.new(0.5, -100, 0.5, -160),
+            Size = UDim2.new(0, 200, 0, 340),
+            Position = UDim2.new(0.5, -100, 0.5, -170),
             BackgroundColor3 = Library.BackgroundColor,
             BorderColor3 = Library.OutlineColor,
             BorderMode = Enum.BorderMode.Inset,
@@ -258,7 +258,7 @@ local PreviewManager = {} do
 
         local boxHeight = 160
         local boxWidth = 96
-        local boxY = 120
+        local boxY = 140
         local boxXOffset = -boxWidth / 2
         local barXOffset = boxXOffset - 6
 
@@ -357,7 +357,7 @@ local PreviewManager = {} do
         if cfg.tracers and cfg.tracers.Value then
             local tracerStartY = boxY + boxHeight / 2
             obj.Tracer.Position = UDim2.new(centerXScale, -0.5, 0, tracerStartY)
-            obj.Tracer.Size = UDim2.new(0, 1, 0, 310 - tracerStartY)
+            obj.Tracer.Size = UDim2.new(0, 1, 0, 330 - tracerStartY)
             obj.Tracer.BackgroundColor3 = color
             obj.Tracer.Visible = true
         else
@@ -376,7 +376,7 @@ local PreviewManager = {} do
 
         local targetSizeX = (role == "Both") and 400 or 200
         if previewFrame.Size.X.Offset ~= targetSizeX then
-            previewFrame.Size = UDim2.new(0, targetSizeX, 0, 320)
+            previewFrame.Size = UDim2.new(0, targetSizeX, 0, 340)
         end
 
         if role == "Survivor" or role == "Both" then
