@@ -6,6 +6,7 @@ local PreviewManager = {} do
 
     local RunService = game:GetService("RunService")
     local Workspace = game:GetService("Workspace")
+    local Camera = Workspace.CurrentCamera
     local CoreGui = game:GetService("CoreGui")
 
     local StateColors = {
@@ -46,14 +47,21 @@ local PreviewManager = {} do
         return nil
     end
 
+    -- Linoria UI Elements
     local previewGui
     local previewFrame
+    local titleBar
+    local accentBar
+    local titleLabel
+
+    -- Drawing API Elements
     local previewObjs = {}
 
     local function createPreviewGui()
         if previewGui then return end
         local Library = PreviewManager.Library
 
+        -- LINORIA UI CONTAINER
         previewGui = Library:Create("ScreenGui", {
             Name = "IrreverencePreview",
             ResetOnSpawn = false,
@@ -62,11 +70,10 @@ local PreviewManager = {} do
             Enabled = false,
         })
 
-        -- LINORIA UI CONTAINER
         previewFrame = Library:Create("Frame", {
             Name = "PreviewBox",
-            Size = UDim2.new(0, 140, 0, 260),
-            Position = UDim2.new(0.5, -70, 0.5, -130),
+            Size = UDim2.new(0, 340, 0, 260),
+            Position = UDim2.new(0.5, -170, 0.5, -130),
             BackgroundColor3 = Color3.fromRGB(0, 0, 0),
             BackgroundTransparency = 0.2,
             BorderColor3 = Library.OutlineColor,
@@ -79,7 +86,7 @@ local PreviewManager = {} do
             BorderColor3 = "OutlineColor",
         })
 
-        local titleBar = Library:Create("Frame", {
+        titleBar = Library:Create("Frame", {
             Name = "TitleBar",
             Size = UDim2.new(1, 0, 0, 20),
             BackgroundColor3 = Library.BackgroundColor,
@@ -90,7 +97,7 @@ local PreviewManager = {} do
             BackgroundColor3 = "BackgroundColor",
         })
 
-        local accentBar = Library:Create("Frame", {
+        accentBar = Library:Create("Frame", {
             Name = "AccentBar",
             Size = UDim2.new(1, 0, 0, 2),
             BackgroundColor3 = Library.AccentColor,
@@ -101,7 +108,7 @@ local PreviewManager = {} do
             BackgroundColor3 = "AccentColor",
         })
 
-        local titleLabel = Library:CreateLabel({
+        titleLabel = Library:CreateLabel({
             Size = UDim2.new(1, -10, 1, 0),
             Position = UDim2.new(0, 5, 0, 0),
             Text = "ESP Preview (Drag me)",
@@ -203,12 +210,13 @@ local PreviewManager = {} do
         end)
     end
 
-    local function drawPreviewESP(obj, cfg, role, centerX, boxY, frameBottomY)
+    local function drawPreviewESP(obj, cfg, role, centerX, centerY)
         if not obj or not cfg then return end
         
         local boxHeight = 160
         local boxWidth = 96
         local boxX = centerX
+        local boxY = centerY
         local barX = boxX - boxWidth/2 - 6
         
         local color = cfg.color and cfg.color.Value or Color3.new(1, 1, 1)
@@ -294,7 +302,7 @@ local PreviewManager = {} do
         end
         
         if cfg.tracers and cfg.tracers.Value then
-            obj.Tracer.From = Vector2.new(boxX, frameBottomY)
+            obj.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
             obj.Tracer.To = Vector2.new(boxX, boxY + boxHeight / 2)
             obj.Tracer.Color = color
             obj.Tracer.Visible = true
@@ -312,34 +320,27 @@ local PreviewManager = {} do
         local survCfg = getRoleCfg("Survivor")
         local killCfg = getRoleCfg("Killer")
 
-        local targetSizeX = (role == "Both") and 280 or 140
+        local targetSizeX = (role == "Both") and 520 or 340
         if previewFrame.Size.X.Offset ~= targetSizeX then
             previewFrame.Size = UDim2.new(0, targetSizeX, 0, 260)
         end
 
         local framePos = previewFrame.AbsolutePosition
         local frameSize = previewFrame.AbsoluteSize
-        
-        -- Perfectly center the ESP block vertically inside the frame
-        -- Total ESP height (Name + Box + Distance + State) = 16 + 160 + 16 + 16 = 208
-        -- Frame is 260 tall. Title bar is 20. Remaining is 240.
-        -- Top padding = (240 - 208) / 2 = 16.
-        -- So Box Y = Frame Y + Title Bar (20) + Top Padding (16) + Name Height (16) = Frame Y + 52
-        local boxY = framePos.Y + 52
-        local frameBottomY = framePos.Y + frameSize.Y
+        local centerY = framePos.Y + (frameSize.Y * 0.5)
 
         if role == "Survivor" or role == "Both" then
             if not previewObjs.Survivor then previewObjs.Survivor = createPreviewObj() end
-            local centerX = framePos.X + (role == "Both" and (frameSize.X * 0.25) or (frameSize.X * 0.5))
-            drawPreviewESP(previewObjs.Survivor, survCfg, "Survivor", centerX, boxY, frameBottomY)
+            local centerX = framePos.X + (frameSize.X * (role == "Both" and 0.3 or 0.5))
+            drawPreviewESP(previewObjs.Survivor, survCfg, "Survivor", centerX, centerY)
         else
             if previewObjs.Survivor then hidePreviewObj(previewObjs.Survivor) end
         end
         
         if role == "Killer" or role == "Both" then
             if not previewObjs.Killer then previewObjs.Killer = createPreviewObj() end
-            local centerX = framePos.X + (role == "Both" and (frameSize.X * 0.75) or (frameSize.X * 0.5))
-            drawPreviewESP(previewObjs.Killer, killCfg, "Killer", centerX, boxY, frameBottomY)
+            local centerX = framePos.X + (frameSize.X * (role == "Both" and 0.7 or 0.5))
+            drawPreviewESP(previewObjs.Killer, killCfg, "Killer", centerX, centerY)
         else
             if previewObjs.Killer then hidePreviewObj(previewObjs.Killer) end
         end
