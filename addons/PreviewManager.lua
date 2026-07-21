@@ -64,8 +64,8 @@ local PreviewManager = {} do
 
         previewFrame = Library:Create("Frame", {
             Name = "PreviewBox",
-            Size = UDim2.new(0, 180, 0, 260),
-            Position = UDim2.new(0.5, -90, 0.5, -130),
+            Size = UDim2.new(0, 130, 0, 248),
+            Position = UDim2.new(0.5, -65, 0.5, -124),
             BackgroundColor3 = Color3.fromRGB(0, 0, 0),
             BackgroundTransparency = 0.2,
             BorderColor3 = Library.OutlineColor,
@@ -310,16 +310,18 @@ local PreviewManager = {} do
         local survCfg = getRoleCfg("Survivor")
         local killCfg = getRoleCfg("Killer")
 
-        local targetSizeX = (role == "Both") and 342 or 180
-        if previewFrame.Size.X.Offset ~= targetSizeX then
-            previewFrame.Size = UDim2.new(0, targetSizeX, 0, 260)
+        -- Width is 130 for one, 280 for both. Height is always 248.
+        local targetSizeX = (role == "Both") and 280 or 130
+        local targetSizeY = 248
+        if previewFrame.Size.X.Offset ~= targetSizeX or previewFrame.Size.Y.Offset ~= targetSizeY then
+            previewFrame.Size = UDim2.new(0, targetSizeX, 0, targetSizeY)
         end
 
         local framePos = previewFrame.AbsolutePosition
         local frameSize = previewFrame.AbsoluteSize
         
-        -- Perfectly center the ESP block vertically inside the frame
-        local espTotalHeight = 160 + 16 + 16 + 16 -- box + name + distance + state
+        -- Vertically center the 208px tall ESP block inside the frame
+        local espTotalHeight = 208
         local boxY = framePos.Y + (frameSize.Y - espTotalHeight) / 2
         local frameBottomY = framePos.Y + frameSize.Y
 
