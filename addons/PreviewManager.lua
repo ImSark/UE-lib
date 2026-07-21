@@ -87,8 +87,8 @@ local PreviewManager = {} do
 
         previewFrame = Library:Create("Frame", {
             Name = "PreviewBox",
-            Size = UDim2.new(0, 200, 0, 240),
-            Position = UDim2.new(0.5, -100, 0.5, -120),
+            Size = UDim2.new(0, 200, 0, 150),
+            Position = UDim2.new(0.5, -100, 0.5, -75),
             BackgroundColor3 = Library.BackgroundColor,
             BorderColor3 = Library.OutlineColor,
             BorderMode = Enum.BorderMode.Inset,
@@ -256,8 +256,8 @@ local PreviewManager = {} do
     local function drawPreviewESP(obj, cfg, role, centerXScale)
         if not obj or not cfg then return end
 
-        local boxHeight = 160
-        local boxWidth = 96
+        local boxHeight = 80
+        local boxWidth = 50
         local boxY = 30
         local boxXOffset = -boxWidth / 2
         local barXOffset = boxXOffset - 6
@@ -357,7 +357,7 @@ local PreviewManager = {} do
         if cfg.tracers and cfg.tracers.Value then
             local tracerStartY = boxY + boxHeight / 2
             obj.Tracer.Position = UDim2.new(centerXScale, -0.5, 0, tracerStartY)
-            obj.Tracer.Size = UDim2.new(0, 1, 0, 230 - tracerStartY)
+            obj.Tracer.Size = UDim2.new(0, 1, 0, 140 - tracerStartY)
             obj.Tracer.BackgroundColor3 = color
             obj.Tracer.Visible = true
         else
@@ -376,7 +376,7 @@ local PreviewManager = {} do
 
         local targetSizeX = (role == "Both") and 400 or 200
         if previewFrame.Size.X.Offset ~= targetSizeX then
-            previewFrame.Size = UDim2.new(0, targetSizeX, 0, 240)
+            previewFrame.Size = UDim2.new(0, targetSizeX, 0, 150)
         end
 
         if role == "Survivor" or role == "Both" then
