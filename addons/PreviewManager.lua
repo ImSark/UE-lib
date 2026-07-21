@@ -53,6 +53,7 @@ local PreviewManager = {} do
         if previewGui then return end
         local Library = PreviewManager.Library
 
+        -- LINORIA UI CONTAINER
         previewGui = Library:Create("ScreenGui", {
             Name = "IrreverencePreview",
             ResetOnSpawn = false,
@@ -61,7 +62,6 @@ local PreviewManager = {} do
             Enabled = false,
         })
 
-        -- LINORIA UI CONTAINER
         previewFrame = Library:Create("Frame", {
             Name = "PreviewBox",
             Size = UDim2.new(0, 140, 0, 260),
@@ -72,7 +72,6 @@ local PreviewManager = {} do
             BorderMode = Enum.BorderMode.Inset,
             Parent = previewGui,
         })
-        -- Use Linoria's built in drag function, restricted to top 20px (title bar)
         Library:MakeDraggable(previewFrame, 20, false)
 
         local titleBar = Library:Create("Frame", {
@@ -108,7 +107,7 @@ local PreviewManager = {} do
     end
 
     local function createPreviewObj()
-        -- DRAWING API ESP ELEMENTS
+        -- DRAWING API ESP ELEMENTS ONLY
         local obj = {}
         
         obj.Cham = Drawing.new("Square")
