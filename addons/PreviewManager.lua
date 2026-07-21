@@ -87,8 +87,8 @@ local PreviewManager = {} do
 
         previewFrame = Library:Create("Frame", {
             Name = "PreviewBox",
-            Size = UDim2.new(0, 200, 0, 230),
-            Position = UDim2.new(0.5, -100, 0.5, -115),
+            Size = UDim2.new(0, 240, 0, 320),
+            Position = UDim2.new(0.5, -120, 0.5, -160),
             BackgroundColor3 = Library.BackgroundColor,
             BorderColor3 = Library.OutlineColor,
             BorderMode = Enum.BorderMode.Inset,
@@ -256,9 +256,9 @@ local PreviewManager = {} do
     local function drawPreviewESP(obj, cfg, role, centerXScale)
         if not obj or not cfg then return end
 
-        local boxHeight = 140
-        local boxWidth = 80
-        local boxY = 30
+        local boxHeight = 200
+        local boxWidth = 100
+        local boxY = 36
         local boxXOffset = -boxWidth / 2
         local barXOffset = boxXOffset - 6
 
@@ -299,8 +299,8 @@ local PreviewManager = {} do
 
         if cfg.name and cfg.name.Value then
             obj.Name.Text = displayText
-            obj.Name.Position = UDim2.new(centerXScale, -100, 0, boxY - 16)
-            obj.Name.Size = UDim2.new(0, 200, 0, 16)
+            obj.Name.Position = UDim2.new(centerXScale, -120, 0, boxY - 18)
+            obj.Name.Size = UDim2.new(0, 240, 0, 16)
             obj.Name.TextColor3 = color
             obj.Name.Visible = true
         else
@@ -309,8 +309,8 @@ local PreviewManager = {} do
 
         if cfg.distance and cfg.distance.Value then
             obj.Distance.Text = string.format("%d studs", dist)
-            obj.Distance.Position = UDim2.new(centerXScale, -100, 0, boxY + boxHeight + 2)
-            obj.Distance.Size = UDim2.new(0, 200, 0, 14)
+            obj.Distance.Position = UDim2.new(centerXScale, -120, 0, boxY + boxHeight + 4)
+            obj.Distance.Size = UDim2.new(0, 240, 0, 14)
             obj.Distance.TextColor3 = Color3.fromRGB(200, 200, 200)
             obj.Distance.Visible = true
         else
@@ -319,8 +319,8 @@ local PreviewManager = {} do
 
         if stateText ~= "" then
             obj.State.Text = stateText
-            obj.State.Position = UDim2.new(centerXScale, -100, 0, boxY + boxHeight + 16)
-            obj.State.Size = UDim2.new(0, 200, 0, 14)
+            obj.State.Position = UDim2.new(centerXScale, -120, 0, boxY + boxHeight + 20)
+            obj.State.Size = UDim2.new(0, 240, 0, 14)
             obj.State.TextColor3 = stateColor
             obj.State.Visible = true
         else
@@ -332,11 +332,11 @@ local PreviewManager = {} do
 
         if cfg.health and cfg.health.Value then
             obj.HealthBarBg.Position = UDim2.new(centerXScale, barXOffset - 1, 0, boxY - 1)
-            obj.HealthBarBg.Size = UDim2.new(0, 3, 0, boxHeight + 2)
+            obj.HealthBarBg.Size = UDim2.new(0, 4, 0, boxHeight + 2)
             obj.HealthBarBg.Visible = true
 
             obj.HealthBarFill.Position = UDim2.new(centerXScale, barXOffset, 0, boxY + boxHeight - barHeight)
-            obj.HealthBarFill.Size = UDim2.new(0, 1, 0, barHeight)
+            obj.HealthBarFill.Size = UDim2.new(0, 2, 0, barHeight)
             obj.HealthBarFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0):Lerp(Color3.fromRGB(255, 0, 0), 1 - healthPct)
             obj.HealthBarFill.Visible = true
         else
@@ -346,8 +346,8 @@ local PreviewManager = {} do
 
         if cfg.healthNumber and cfg.healthNumber.Value then
             obj.HealthNumber.Text = string.format("%d / %d", health, maxHealth)
-            obj.HealthNumber.Position = UDim2.new(centerXScale, barXOffset - 52, 0, boxY + boxHeight / 2 - 6)
-            obj.HealthNumber.Size = UDim2.new(0, 50, 0, 12)
+            obj.HealthNumber.Position = UDim2.new(centerXScale, barXOffset - 56, 0, boxY + boxHeight / 2 - 6)
+            obj.HealthNumber.Size = UDim2.new(0, 54, 0, 12)
             obj.HealthNumber.TextColor3 = Color3.fromRGB(255, 255, 255)
             obj.HealthNumber.Visible = true
         else
@@ -357,7 +357,7 @@ local PreviewManager = {} do
         if cfg.tracers and cfg.tracers.Value then
             local tracerStartY = boxY + boxHeight / 2
             obj.Tracer.Position = UDim2.new(centerXScale, -0.5, 0, tracerStartY)
-            obj.Tracer.Size = UDim2.new(0, 1, 0, 220 - tracerStartY)
+            obj.Tracer.Size = UDim2.new(0, 1, 0, 310 - tracerStartY)
             obj.Tracer.BackgroundColor3 = color
             obj.Tracer.Visible = true
         else
@@ -374,9 +374,9 @@ local PreviewManager = {} do
         local survCfg = getRoleCfg("Survivor")
         local killCfg = getRoleCfg("Killer")
 
-        local targetSizeX = (role == "Both") and 400 or 200
+        local targetSizeX = (role == "Both") and 480 or 240
         if previewFrame.Size.X.Offset ~= targetSizeX then
-            previewFrame.Size = UDim2.new(0, targetSizeX, 0, 230)
+            previewFrame.Size = UDim2.new(0, targetSizeX, 0, 320)
         end
 
         if role == "Survivor" or role == "Both" then
