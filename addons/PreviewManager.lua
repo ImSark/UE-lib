@@ -201,13 +201,12 @@ local PreviewManager = {} do
         end)
     end
 
-    local function drawPreviewESP(obj, cfg, role, centerX, centerY, frameBottomY)
+    local function drawPreviewESP(obj, cfg, role, centerX, boxY, frameBottomY)
         if not obj or not cfg then return end
         
         local boxHeight = 160
         local boxWidth = 96
         local boxX = centerX
-        local boxY = centerY
         local barX = boxX - boxWidth/2 - 6
         
         local color = cfg.color and cfg.color.Value or Color3.new(1, 1, 1)
@@ -318,21 +317,24 @@ local PreviewManager = {} do
 
         local framePos = previewFrame.AbsolutePosition
         local frameSize = previewFrame.AbsoluteSize
-        local centerY = framePos.Y + 45
+        
+        -- Perfectly center the ESP block vertically inside the frame
+        local espTotalHeight = 160 + 16 + 16 + 16 -- box + name + distance + state
+        local boxY = framePos.Y + (frameSize.Y - espTotalHeight) / 2
         local frameBottomY = framePos.Y + frameSize.Y
 
         if role == "Survivor" or role == "Both" then
             if not previewObjs.Survivor then previewObjs.Survivor = createPreviewObj() end
-            local centerX = framePos.X + 114
-            drawPreviewESP(previewObjs.Survivor, survCfg, "Survivor", centerX, centerY, frameBottomY)
+            local centerX = framePos.X + (role == "Both" and (frameSize.X * 0.25) or (frameSize.X * 0.5))
+            drawPreviewESP(previewObjs.Survivor, survCfg, "Survivor", centerX, boxY, frameBottomY)
         else
             if previewObjs.Survivor then hidePreviewObj(previewObjs.Survivor) end
         end
         
         if role == "Killer" or role == "Both" then
             if not previewObjs.Killer then previewObjs.Killer = createPreviewObj() end
-            local centerX = framePos.X + (role == "Both" and 276 or 114)
-            drawPreviewESP(previewObjs.Killer, killCfg, "Killer", centerX, centerY, frameBottomY)
+            local centerX = framePos.X + (role == "Both" and (frameSize.X * 0.75) or (frameSize.X * 0.5))
+            drawPreviewESP(previewObjs.Killer, killCfg, "Killer", centerX, boxY, frameBottomY)
         else
             if previewObjs.Killer then hidePreviewObj(previewObjs.Killer) end
         end
