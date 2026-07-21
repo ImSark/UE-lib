@@ -54,7 +54,6 @@ local PreviewManager = {} do
         if previewGui then return end
         local Library = PreviewManager.Library
 
-        -- Dedicated ScreenGui with IgnoreGuiInset = true to fix coordinate mismatch
         previewGui = Library:Create("ScreenGui", {
             Name = "IrreverencePreview",
             ResetOnSpawn = false,
@@ -79,7 +78,6 @@ local PreviewManager = {} do
             BorderColor3 = "OutlineColor",
         })
 
-        -- Custom drag logic
         local dragging = false
         local dragInput, mousePos, framePos
 
@@ -356,11 +354,12 @@ local PreviewManager = {} do
         local framePos = previewFrame.AbsolutePosition
         local frameSize = previewFrame.AbsoluteSize
         
-        -- Perfectly center the ESP block vertically inside the frame
         local espTotalHeight = 208
         local availableHeight = frameSize.Y - 20
         local topPadding = (availableHeight - espTotalHeight) / 2
-        local boxY = framePos.Y + 20 + topPadding + 16
+        
+        -- Pushed down 10px here
+        local boxY = framePos.Y + 20 + topPadding + 16 + 10
         local frameBottomY = framePos.Y + frameSize.Y - 10
 
         if role == "Survivor" or role == "Both" then
