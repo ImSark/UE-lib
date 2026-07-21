@@ -418,6 +418,15 @@ local PreviewManager = {} do
 
     function PreviewManager:SetLibrary(lib)
         self.Library = lib
+
+        local oldToggle = lib.Toggle
+        lib.Toggle = function(...)
+            oldToggle(...)
+            if not lib.Toggled and previewGui then
+                previewGui.Enabled = false
+                for _, obj in pairs(previewObjs) do hidePreviewObj(obj) end
+            end
+        end
     end
 
     function PreviewManager:SetConfig(cfg)
