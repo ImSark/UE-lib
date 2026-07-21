@@ -5,8 +5,6 @@ local PreviewManager = {} do
     PreviewManager.Config = nil
 
     local RunService = game:GetService("RunService")
-    local Workspace = game:GetService("Workspace")
-    local Camera = Workspace.CurrentCamera
     local CoreGui = game:GetService("CoreGui")
 
     local StateColors = {
@@ -47,21 +45,14 @@ local PreviewManager = {} do
         return nil
     end
 
-    -- Linoria UI Elements
     local previewGui
     local previewFrame
-    local titleBar
-    local accentBar
-    local titleLabel
-
-    -- Drawing API Elements
-    local previewObjs = {}
+    local previewDummies = {}
 
     local function createPreviewGui()
         if previewGui then return end
         local Library = PreviewManager.Library
 
-        -- LINORIA UI CONTAINER
         previewGui = Library:Create("ScreenGui", {
             Name = "IrreverencePreview",
             ResetOnSpawn = false,
@@ -72,8 +63,8 @@ local PreviewManager = {} do
 
         previewFrame = Library:Create("Frame", {
             Name = "PreviewBox",
-            Size = UDim2.new(0, 340, 0, 260),
-            Position = UDim2.new(0.5, -170, 0.5, -130),
+            Size = UDim2.new(0, 140, 0, 260),
+            Position = UDim2.new(0.5, -70, 0.5, -130),
             BackgroundColor3 = Color3.fromRGB(0, 0, 0),
             BackgroundTransparency = 0.2,
             BorderColor3 = Library.OutlineColor,
@@ -86,7 +77,7 @@ local PreviewManager = {} do
             BorderColor3 = "OutlineColor",
         })
 
-        titleBar = Library:Create("Frame", {
+        local titleBar = Library:Create("Frame", {
             Name = "TitleBar",
             Size = UDim2.new(1, 0, 0, 20),
             BackgroundColor3 = Library.BackgroundColor,
@@ -97,7 +88,7 @@ local PreviewManager = {} do
             BackgroundColor3 = "BackgroundColor",
         })
 
-        accentBar = Library:Create("Frame", {
+        local accentBar = Library:Create("Frame", {
             Name = "AccentBar",
             Size = UDim2.new(1, 0, 0, 2),
             BackgroundColor3 = Library.AccentColor,
@@ -108,7 +99,7 @@ local PreviewManager = {} do
             BackgroundColor3 = "AccentColor",
         })
 
-        titleLabel = Library:CreateLabel({
+        local titleLabel = Library:CreateLabel({
             Size = UDim2.new(1, -10, 1, 0),
             Position = UDim2.new(0, 5, 0, 0),
             Text = "ESP Preview (Drag me)",
@@ -116,109 +107,108 @@ local PreviewManager = {} do
             TextSize = Library.FontSize,
             Parent = titleBar,
         })
+
+        local function createDummyUI()
+            local dummy = {}
+
+            dummy.Cham = Library:Create("Frame", {
+                Name = "Cham",
+                BorderSizePixel = 0,
+                BackgroundTransparency = 1,
+                ZIndex = 2,
+                Parent = previewFrame,
+            })
+
+            dummy.Box = Library:Create("Frame", {
+                Name = "Box",
+                BorderSizePixel = 2,
+                BackgroundTransparency = 1,
+                ZIndex = 3,
+                Parent = previewFrame,
+            })
+
+            dummy.Name = Library:CreateLabel({
+                Name = "NameLabel",
+                BackgroundTransparency = 1,
+                Font = Library.Font,
+                TextSize = Library.FontSize + 2,
+                TextStrokeTransparency = 0,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                ZIndex = 4,
+                Parent = previewFrame,
+            })
+
+            dummy.Distance = Library:CreateLabel({
+                Name = "DistanceLabel",
+                BackgroundTransparency = 1,
+                Font = Library.Font,
+                TextSize = Library.FontSize,
+                TextStrokeTransparency = 0,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                ZIndex = 4,
+                Parent = previewFrame,
+            })
+
+            dummy.State = Library:CreateLabel({
+                Name = "StateLabel",
+                BackgroundTransparency = 1,
+                Font = Library.Font,
+                TextSize = Library.FontSize,
+                TextStrokeTransparency = 0,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                ZIndex = 4,
+                Parent = previewFrame,
+            })
+
+            dummy.HealthBg = Library:Create("Frame", {
+                Name = "HealthBg",
+                BorderSizePixel = 0,
+                BackgroundColor3 = Color3.new(0, 0, 0),
+                ZIndex = 3,
+                Parent = previewFrame,
+            })
+
+            dummy.HealthFill = Library:Create("Frame", {
+                Name = "HealthFill",
+                BorderSizePixel = 0,
+                ZIndex = 4,
+                Parent = dummy.HealthBg,
+            })
+
+            dummy.HealthNumber = Library:CreateLabel({
+                Name = "HealthNumberLabel",
+                BackgroundTransparency = 1,
+                Font = Library.Font,
+                TextSize = Library.FontSize - 1,
+                TextStrokeTransparency = 0,
+                TextXAlignment = Enum.TextXAlignment.Right,
+                ZIndex = 4,
+                Parent = previewFrame,
+            })
+
+            dummy.Tracer = Library:Create("Frame", {
+                Name = "Tracer",
+                BorderSizePixel = 0,
+                ZIndex = 2,
+                Parent = previewFrame,
+            })
+
+            return dummy
+        end
+
+        previewDummies.Survivor = createDummyUI()
+        previewDummies.Killer = createDummyUI()
     end
 
-    local function createPreviewObj()
-        -- DRAWING API ESP ELEMENTS
-        local obj = {}
-        
-        obj.Cham = Drawing.new("Square")
-        obj.Cham.Thickness = 0
-        obj.Cham.Filled = true
-        obj.Cham.Transparency = 1
-        obj.Cham.Visible = false
-        
-        obj.Box = Drawing.new("Square")
-        obj.Box.Thickness = 1
-        obj.Box.Filled = false
-        obj.Box.Transparency = 1
-        obj.Box.Visible = false
-        
-        obj.Name = Drawing.new("Text")
-        obj.Name.Size = 14
-        obj.Name.Center = true
-        obj.Name.Outline = true
-        obj.Name.Font = 2
-        obj.Name.Visible = false
-        
-        obj.Distance = Drawing.new("Text")
-        obj.Distance.Size = 12
-        obj.Distance.Center = true
-        obj.Distance.Outline = true
-        obj.Distance.Font = 2
-        obj.Distance.Visible = false
-        
-        obj.State = Drawing.new("Text")
-        obj.State.Size = 12
-        obj.State.Center = true
-        obj.State.Outline = true
-        obj.State.Font = 2
-        obj.State.Visible = false
-        
-        obj.HealthNumber = Drawing.new("Text")
-        obj.HealthNumber.Size = 11
-        obj.HealthNumber.Center = false
-        obj.HealthNumber.Outline = true
-        obj.HealthNumber.Font = 2
-        obj.HealthNumber.Visible = false
-        
-        obj.HealthBarBg = Drawing.new("Square")
-        obj.HealthBarBg.Thickness = 1
-        obj.HealthBarBg.Filled = false
-        obj.HealthBarBg.Transparency = 1
-        obj.HealthBarBg.Visible = false
-        
-        obj.HealthBarFill = Drawing.new("Square")
-        obj.HealthBarFill.Thickness = 1
-        obj.HealthBarFill.Filled = true
-        obj.HealthBarFill.Transparency = 1
-        obj.HealthBarFill.Visible = false
-        
-        obj.Tracer = Drawing.new("Line")
-        obj.Tracer.Thickness = 1
-        obj.Tracer.Transparency = 1
-        obj.Tracer.Visible = false
-        
-        return obj
-    end
+    local function drawDummy(dummy, cfg, role, centerX, boxY, frameBottomY)
+        if not dummy or not cfg then return end
+        local Library = PreviewManager.Library
 
-    local function hidePreviewObj(obj)
-        if not obj then return end
-        obj.Cham.Visible = false
-        obj.Box.Visible = false
-        obj.Name.Visible = false
-        obj.Distance.Visible = false
-        obj.State.Visible = false
-        obj.HealthNumber.Visible = false
-        obj.HealthBarBg.Visible = false
-        obj.HealthBarFill.Visible = false
-        obj.Tracer.Visible = false
-    end
-
-    local function destroyPreviewObj(obj)
-        if not obj then return end
-        pcall(function()
-            obj.Cham:Remove()
-            obj.Box:Remove()
-            obj.Name:Remove()
-            obj.Distance:Remove()
-            obj.State:Remove()
-            obj.HealthNumber:Remove()
-            obj.HealthBarBg:Remove()
-            obj.HealthBarFill:Remove()
-            obj.Tracer:Remove()
-        end)
-    end
-
-    local function drawPreviewESP(obj, cfg, role, centerX, centerY)
-        if not obj or not cfg then return end
-        
         local boxHeight = 160
         local boxWidth = 96
         local boxX = centerX
-        local boxY = centerY
         local barX = boxX - boxWidth/2 - 6
-        
+
         local color = cfg.color and cfg.color.Value or Color3.new(1, 1, 1)
         local displayText = role == "Survivor" and "Survivor_Preview" or "Killer_Preview"
         local dist = role == "Survivor" and 45 or 60
@@ -226,89 +216,106 @@ local PreviewManager = {} do
         local maxHealth = 100
         local stateText = role == "Survivor" and "Medkit" or ""
         local stateColor = StateColors.Item
-        
+
         if cfg.chams and cfg.chams.Value then
-            obj.Cham.Size = Vector2.new(boxWidth, boxHeight)
-            obj.Cham.Position = Vector2.new(boxX - boxWidth/2, boxY)
-            obj.Cham.Color = color
-            obj.Cham.Transparency = 1 - (cfg.chamsOpacity and cfg.chamsOpacity.Value or 0.5)
-            obj.Cham.Visible = true
+            dummy.Cham.Size = UDim2.new(0, boxWidth, 0, boxHeight)
+            dummy.Cham.Position = UDim2.new(0, boxX - boxWidth/2, 0, boxY)
+            dummy.Cham.BackgroundColor3 = color
+            dummy.Cham.BackgroundTransparency = 1 - (cfg.chamsOpacity and cfg.chamsOpacity.Value or 0.5)
+            dummy.Cham.Visible = true
         else
-            obj.Cham.Visible = false
+            dummy.Cham.Visible = false
         end
-        
+
         if cfg.box and cfg.box.Value then
-            obj.Box.Size = Vector2.new(boxWidth, boxHeight)
-            obj.Box.Position = Vector2.new(boxX - boxWidth/2, boxY)
-            obj.Box.Color = color
-            obj.Box.Filled = cfg.boxFilled and cfg.boxFilled.Value or false
-            obj.Box.Visible = true
+            dummy.Box.Size = UDim2.new(0, boxWidth, 0, boxHeight)
+            dummy.Box.Position = UDim2.new(0, boxX - boxWidth/2, 0, boxY)
+            dummy.Box.BorderColor3 = color
+            dummy.Box.BackgroundColor3 = color
+            dummy.Box.BackgroundTransparency = (cfg.boxFilled and cfg.boxFilled.Value) and 0.5 or 1
+            dummy.Box.Visible = true
         else
-            obj.Box.Visible = false
+            dummy.Box.Visible = false
         end
-        
+
         if cfg.name and cfg.name.Value then
-            obj.Name.Text = displayText
-            obj.Name.Position = Vector2.new(boxX, boxY - 16)
-            obj.Name.Color = color
-            obj.Name.Visible = true
+            dummy.Name.Text = displayText
+            dummy.Name.Position = UDim2.new(0, boxX - 100, 0, boxY - 18)
+            dummy.Name.Size = UDim2.new(0, 200, 0, 16)
+            dummy.Name.TextColor3 = color
+            dummy.Name.Visible = true
         else
-            obj.Name.Visible = false
+            dummy.Name.Visible = false
         end
-        
+
         if cfg.distance and cfg.distance.Value then
-            obj.Distance.Text = string.format("%d studs", dist)
-            obj.Distance.Position = Vector2.new(boxX, boxY + boxHeight + 2)
-            obj.Distance.Color = Color3.fromRGB(200, 200, 200)
-            obj.Distance.Visible = true
+            dummy.Distance.Text = string.format("%d studs", dist)
+            dummy.Distance.Position = UDim2.new(0, boxX - 100, 0, boxY + boxHeight + 2)
+            dummy.Distance.Size = UDim2.new(0, 200, 0, 16)
+            dummy.Distance.TextColor3 = Color3.fromRGB(200, 200, 200)
+            dummy.Distance.Visible = true
         else
-            obj.Distance.Visible = false
+            dummy.Distance.Visible = false
         end
-        
+
         if stateText ~= "" then
-            obj.State.Text = stateText
-            obj.State.Position = Vector2.new(boxX, boxY + boxHeight + 16)
-            obj.State.Color = stateColor
-            obj.State.Visible = true
+            dummy.State.Text = stateText
+            dummy.State.Position = UDim2.new(0, boxX - 100, 0, boxY + boxHeight + 18)
+            dummy.State.Size = UDim2.new(0, 200, 0, 16)
+            dummy.State.TextColor3 = stateColor
+            dummy.State.Visible = true
         else
-            obj.State.Visible = false
+            dummy.State.Visible = false
         end
-        
+
         local healthPct = health / maxHealth
         local barHeight = boxHeight * healthPct
-        
+
         if cfg.health and cfg.health.Value then
-            obj.HealthBarBg.Size = Vector2.new(3, boxHeight + 2)
-            obj.HealthBarBg.Position = Vector2.new(barX - 1, boxY - 1)
-            obj.HealthBarBg.Color = Color3.new(0, 0, 0)
-            obj.HealthBarBg.Visible = true
-            
-            obj.HealthBarFill.Size = Vector2.new(1, barHeight)
-            obj.HealthBarFill.Position = Vector2.new(barX, boxY + boxHeight - barHeight)
-            obj.HealthBarFill.Color = Color3.fromRGB(0, 255, 0):Lerp(Color3.fromRGB(255, 0, 0), 1 - healthPct)
-            obj.HealthBarFill.Visible = true
+            dummy.HealthBg.Size = UDim2.new(0, 3, 0, boxHeight + 2)
+            dummy.HealthBg.Position = UDim2.new(0, barX - 1, 0, boxY - 1)
+            dummy.HealthBg.Visible = true
+
+            dummy.HealthFill.Size = UDim2.new(0, 1, 0, barHeight)
+            dummy.HealthFill.Position = UDim2.new(0, 1, 0, boxHeight + 2 - barHeight)
+            dummy.HealthFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0):Lerp(Color3.fromRGB(255, 0, 0), 1 - healthPct)
+            dummy.HealthFill.Visible = true
         else
-            obj.HealthBarBg.Visible = false
-            obj.HealthBarFill.Visible = false
+            dummy.HealthBg.Visible = false
+            dummy.HealthFill.Visible = false
         end
-        
+
         if cfg.healthNumber and cfg.healthNumber.Value then
-            obj.HealthNumber.Text = string.format("%d / %d", health, maxHealth)
-            obj.HealthNumber.Position = Vector2.new(barX - obj.HealthNumber.TextBounds.X - 2, boxY + boxHeight/2 - obj.HealthNumber.TextBounds.Y/2)
-            obj.HealthNumber.Color = Color3.fromRGB(255, 255, 255)
-            obj.HealthNumber.Visible = true
+            dummy.HealthNumber.Text = string.format("%d / %d", health, maxHealth)
+            dummy.HealthNumber.Position = UDim2.new(0, barX - 42, 0, boxY + boxHeight/2 - 8)
+            dummy.HealthNumber.Size = UDim2.new(0, 40, 0, 16)
+            dummy.HealthNumber.TextColor3 = Color3.fromRGB(255, 255, 255)
+            dummy.HealthNumber.Visible = true
         else
-            obj.HealthNumber.Visible = false
+            dummy.HealthNumber.Visible = false
         end
-        
+
         if cfg.tracers and cfg.tracers.Value then
-            obj.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-            obj.Tracer.To = Vector2.new(boxX, boxY + boxHeight / 2)
-            obj.Tracer.Color = color
-            obj.Tracer.Visible = true
+            dummy.Tracer.Size = UDim2.new(0, 1, 0, frameBottomY - (boxY + boxHeight/2))
+            dummy.Tracer.Position = UDim2.new(0, boxX, 0, boxY + boxHeight/2)
+            dummy.Tracer.BackgroundColor3 = color
+            dummy.Tracer.Visible = true
         else
-            obj.Tracer.Visible = false
+            dummy.Tracer.Visible = false
         end
+    end
+
+    local function hideDummy(dummy)
+        if not dummy then return end
+        dummy.Cham.Visible = false
+        dummy.Box.Visible = false
+        dummy.Name.Visible = false
+        dummy.Distance.Visible = false
+        dummy.State.Visible = false
+        dummy.HealthBg.Visible = false
+        dummy.HealthFill.Visible = false
+        dummy.HealthNumber.Visible = false
+        dummy.Tracer.Visible = false
     end
 
     local function updatePreview()
@@ -320,29 +327,29 @@ local PreviewManager = {} do
         local survCfg = getRoleCfg("Survivor")
         local killCfg = getRoleCfg("Killer")
 
-        local targetSizeX = (role == "Both") and 520 or 340
+        local targetSizeX = (role == "Both") and 280 or 140
         if previewFrame.Size.X.Offset ~= targetSizeX then
             previewFrame.Size = UDim2.new(0, targetSizeX, 0, 260)
         end
 
         local framePos = previewFrame.AbsolutePosition
         local frameSize = previewFrame.AbsoluteSize
-        local centerY = framePos.Y + (frameSize.Y * 0.5)
+        
+        local boxY = 52
+        local frameBottomY = frameSize.Y
 
         if role == "Survivor" or role == "Both" then
-            if not previewObjs.Survivor then previewObjs.Survivor = createPreviewObj() end
-            local centerX = framePos.X + (frameSize.X * (role == "Both" and 0.3 or 0.5))
-            drawPreviewESP(previewObjs.Survivor, survCfg, "Survivor", centerX, centerY)
+            local centerX = (role == "Both") and (frameSize.X * 0.25) or (frameSize.X * 0.5)
+            drawDummy(previewDummies.Survivor, survCfg, "Survivor", centerX, boxY, frameBottomY)
         else
-            if previewObjs.Survivor then hidePreviewObj(previewObjs.Survivor) end
+            hideDummy(previewDummies.Survivor)
         end
         
         if role == "Killer" or role == "Both" then
-            if not previewObjs.Killer then previewObjs.Killer = createPreviewObj() end
-            local centerX = framePos.X + (frameSize.X * (role == "Both" and 0.7 or 0.5))
-            drawPreviewESP(previewObjs.Killer, killCfg, "Killer", centerX, centerY)
+            local centerX = (role == "Both") and (frameSize.X * 0.75) or (frameSize.X * 0.5)
+            drawDummy(previewDummies.Killer, killCfg, "Killer", centerX, boxY, frameBottomY)
         else
-            if previewObjs.Killer then hidePreviewObj(previewObjs.Killer) end
+            hideDummy(previewDummies.Killer)
         end
     end
 
@@ -352,7 +359,6 @@ local PreviewManager = {} do
         renderConn = RunService.RenderStepped:Connect(function()
             if not PreviewManager.Enabled then
                 if previewGui then previewGui.Enabled = false end
-                for _, obj in pairs(previewObjs) do hidePreviewObj(obj) end
                 return
             end
             updatePreview()
@@ -373,7 +379,6 @@ local PreviewManager = {} do
             startRenderLoop()
         else
             if previewGui then previewGui.Enabled = false end
-            for _, obj in pairs(previewObjs) do hidePreviewObj(obj) end
         end
     end
 
@@ -405,11 +410,7 @@ local PreviewManager = {} do
     function PreviewManager:Unload()
         if renderConn then renderConn:Disconnect() renderConn = nil end
         if previewGui then previewGui:Destroy() previewGui = nil end
-        
-        for _, obj in pairs(previewObjs) do
-            destroyPreviewObj(obj)
-        end
-        previewObjs = {}
+        previewDummies = {}
         self.Enabled = false
     end
 end
