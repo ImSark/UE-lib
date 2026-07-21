@@ -405,6 +405,13 @@ local PreviewManager = {} do
                 for _, obj in pairs(previewObjs) do hidePreviewObj(obj) end
                 return
             end
+
+            if PreviewManager.Library and not PreviewManager.Library.Toggled then
+                if previewGui then previewGui.Enabled = false end
+                for _, obj in pairs(previewObjs) do hidePreviewObj(obj) end
+                return
+            end
+
             updatePreview()
         end)
     end
