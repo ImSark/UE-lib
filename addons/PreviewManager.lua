@@ -52,23 +52,23 @@ local PreviewManager = {} do
         if previewFrame then return end
         local Library = PreviewManager.Library
 
-        -- Parent directly to Linoria's ScreenGui so it inherits modal and cursor behavior
+        -- LINORIA UI CONTAINER
         previewFrame = Library:Create("Frame", {
             Name = "PreviewBox",
             Size = UDim2.new(0, 140, 0, 260),
             Position = UDim2.new(0.5, -70, 0.5, -130),
-            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-            BackgroundTransparency = 0.2,
+            BackgroundColor3 = Color3.fromRGB(20, 20, 20),
             BorderColor3 = Library.OutlineColor,
             BorderMode = Enum.BorderMode.Inset,
             ZIndex = 50,
             Parent = Library.ScreenGui,
         })
         Library:AddToRegistry(previewFrame, {
+            BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
         })
         
-        -- Custom drag logic to avoid Linoria's MakeDraggable conflicts
+        -- Custom drag logic
         local dragging = false
         local dragInput, mousePos, framePos
 
@@ -105,13 +105,13 @@ local PreviewManager = {} do
         local titleBar = Library:Create("Frame", {
             Name = "TitleBar",
             Size = UDim2.new(1, 0, 0, 20),
-            BackgroundColor3 = Library.BackgroundColor,
+            BackgroundColor3 = Library.MainColor,
             BorderSizePixel = 0,
             ZIndex = 51,
             Parent = previewFrame,
         })
         Library:AddToRegistry(titleBar, {
-            BackgroundColor3 = "BackgroundColor",
+            BackgroundColor3 = "MainColor",
         })
 
         local accentBar = Library:Create("Frame", {
@@ -138,6 +138,7 @@ local PreviewManager = {} do
     end
 
     local function createPreviewObj()
+        -- DRAWING API ESP ELEMENTS ONLY
         local obj = {}
         
         obj.Cham = Drawing.new("Square")
@@ -345,6 +346,11 @@ local PreviewManager = {} do
         local framePos = previewFrame.AbsolutePosition
         local frameSize = previewFrame.AbsoluteSize
         
+        -- Fixed Y math to perfectly center inside the 260px frame
+        -- Title bar is 20px. Remaining space is 240px.
+        -- Total ESP height is 208px.
+        -- Top padding = (240 - 208) / 2 = 16px.
+        -- Box Y = Frame Y + Title Bar (20) + Top Padding (16) + Name Height (16) = Frame Y + 52
         local boxY = framePos.Y + 52
         local frameBottomY = framePos.Y + frameSize.Y
 
