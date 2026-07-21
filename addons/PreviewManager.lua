@@ -358,8 +358,8 @@ local PreviewManager = {} do
         local availableHeight = frameSize.Y - 20
         local topPadding = (availableHeight - espTotalHeight) / 2
         
-        -- Pushed down 10px here
-        local boxY = framePos.Y + 20 + topPadding + 16 + 10
+        -- Pushed down 30px more
+        local boxY = framePos.Y + 20 + topPadding + 16 + 10 + 30
         local frameBottomY = framePos.Y + frameSize.Y - 10
 
         if role == "Survivor" or role == "Both" then
