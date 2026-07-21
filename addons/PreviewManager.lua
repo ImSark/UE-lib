@@ -354,8 +354,8 @@ local PreviewManager = {} do
         local framePos = previewFrame.AbsolutePosition
         local frameSize = previewFrame.AbsoluteSize
         
-        -- Pushed down exactly 100px from the title bar (Title bar is 20px, so 120 total)
-        local boxY = framePos.Y + 120
+        -- Pushed down 200px
+        local boxY = framePos.Y + 220
         local frameBottomY = framePos.Y + frameSize.Y - 10
 
         if role == "Survivor" or role == "Both" then
