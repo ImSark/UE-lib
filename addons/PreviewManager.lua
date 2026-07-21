@@ -5,8 +5,11 @@ local PreviewManager = {} do
     PreviewManager.Config = nil
 
     local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
     local Workspace = game:GetService("Workspace")
+    local Camera = Workspace.CurrentCamera
     local CoreGui = game:GetService("CoreGui")
+    local GuiService = game:GetService("GuiService")
 
     local StateColors = {
         Knocked = Color3.fromRGB(200, 100, 0),
@@ -18,6 +21,7 @@ local PreviewManager = {} do
         if not PreviewManager.Config then return nil end
         if role == "Survivor" then
             return {
+                enabled = PreviewManager.Config.SurvivorEnabled,
                 box = PreviewManager.Config.SurvivorBox,
                 boxFilled = PreviewManager.Config.SurvivorBoxFilled,
                 name = PreviewManager.Config.SurvivorName,
@@ -31,6 +35,7 @@ local PreviewManager = {} do
             }
         elseif role == "Killer" then
             return {
+                enabled = PreviewManager.Config.KillerEnabled,
                 box = PreviewManager.Config.KillerBox,
                 boxFilled = PreviewManager.Config.KillerBoxFilled,
                 name = PreviewManager.Config.KillerName,
@@ -46,72 +51,25 @@ local PreviewManager = {} do
         return nil
     end
 
-    local previewGui
-    local previewFrame
     local previewObjs = {}
+    local previewCenters = {
+        Survivor = Vector2.new(Camera.ViewportSize.X * 0.5, Camera.ViewportSize.Y * 0.35),
+        Killer = Vector2.new(Camera.ViewportSize.X * 0.5, Camera.ViewportSize.Y * 0.35)
+    }
 
-    local function createPreviewGui()
-        if previewGui then return end
-        local Library = PreviewManager.Library
-
-        previewGui = Library:Create("ScreenGui", {
-            Name = "IrreverencePreview",
-            ResetOnSpawn = false,
-            DisplayOrder = 9999,
-            Parent = CoreGui,
-            Enabled = false,
-        })
-
-        previewFrame = Library:Create("Frame", {
-            Name = "PreviewBox",
-            Size = UDim2.new(0, 130, 0, 248),
-            Position = UDim2.new(0.5, -65, 0.5, -124),
-            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-            BackgroundTransparency = 0.2,
-            BorderColor3 = Library.OutlineColor,
-            BorderMode = Enum.BorderMode.Inset,
-            Active = true,
-            Draggable = true,
-            Parent = previewGui,
-        })
-        Library:AddToRegistry(previewFrame, {
-            BorderColor3 = "OutlineColor",
-        })
-
-        local titleBar = Library:Create("Frame", {
-            Name = "TitleBar",
-            Size = UDim2.new(1, 0, 0, 20),
-            BackgroundColor3 = Library.BackgroundColor,
-            BorderSizePixel = 0,
-            Parent = previewFrame,
-        })
-        Library:AddToRegistry(titleBar, {
-            BackgroundColor3 = "BackgroundColor",
-        })
-
-        local accentBar = Library:Create("Frame", {
-            Name = "AccentBar",
-            Size = UDim2.new(1, 0, 0, 2),
-            BackgroundColor3 = Library.AccentColor,
-            BorderSizePixel = 0,
-            Parent = titleBar,
-        })
-        Library:AddToRegistry(accentBar, {
-            BackgroundColor3 = "AccentColor",
-        })
-
-        local titleLabel = Library:CreateLabel({
-            Size = UDim2.new(1, -10, 1, 0),
-            Position = UDim2.new(0, 5, 0, 0),
-            Text = "ESP Preview (Drag me)",
-            TextXAlignment = Enum.TextXAlignment.Left,
-            TextSize = Library.FontSize,
-            Parent = titleBar,
-        })
-    end
+    local draggingPreview = nil
+    local dragStartMouse = Vector2.zero
+    local dragStartCenter = Vector2.zero
 
     local function createPreviewObj()
         local obj = {}
+        
+        obj.Bg = Drawing.new("Square")
+        obj.Bg.Thickness = 0
+        obj.Bg.Filled = true
+        obj.Bg.Transparency = 0.2
+        obj.Bg.Color = Color3.fromRGB(0, 0, 0)
+        obj.Bg.Visible = false
         
         obj.Cham = Drawing.new("Square")
         obj.Cham.Thickness = 0
@@ -175,6 +133,7 @@ local PreviewManager = {} do
 
     local function hidePreviewObj(obj)
         if not obj then return end
+        obj.Bg.Visible = false
         obj.Cham.Visible = false
         obj.Box.Visible = false
         obj.Name.Visible = false
@@ -189,6 +148,7 @@ local PreviewManager = {} do
     local function destroyPreviewObj(obj)
         if not obj then return end
         pcall(function()
+            obj.Bg:Remove()
             obj.Cham:Remove()
             obj.Box:Remove()
             obj.Name:Remove()
@@ -201,12 +161,13 @@ local PreviewManager = {} do
         end)
     end
 
-    local function drawPreviewESP(obj, cfg, role, centerX, boxY, frameBottomY)
+    local function drawPreviewESP(obj, cfg, role, centerX, centerY)
         if not obj or not cfg then return end
         
         local boxHeight = 160
         local boxWidth = 96
         local boxX = centerX
+        local boxY = centerY
         local barX = boxX - boxWidth/2 - 6
         
         local color = cfg.color and cfg.color.Value or Color3.new(1, 1, 1)
@@ -216,6 +177,16 @@ local PreviewManager = {} do
         local maxHealth = 100
         local stateText = role == "Survivor" and "Medkit" or ""
         local stateColor = StateColors.Item
+        
+        local pad = 8
+        local bgX = boxX - boxWidth/2 - pad
+        local bgY = boxY - 22
+        local bgW = boxWidth + pad * 2
+        local bgH = boxHeight + 44
+        
+        obj.Bg.Size = Vector2.new(bgW, bgH)
+        obj.Bg.Position = Vector2.new(bgX, bgY)
+        obj.Bg.Visible = true
         
         if cfg.chams and cfg.chams.Value then
             obj.Cham.Size = Vector2.new(boxWidth, boxHeight)
@@ -292,7 +263,7 @@ local PreviewManager = {} do
         end
         
         if cfg.tracers and cfg.tracers.Value then
-            obj.Tracer.From = Vector2.new(boxX, frameBottomY)
+            obj.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
             obj.Tracer.To = Vector2.new(boxX, boxY + boxHeight / 2)
             obj.Tracer.Color = color
             obj.Tracer.Visible = true
@@ -301,42 +272,78 @@ local PreviewManager = {} do
         end
     end
 
-    local function updatePreview()
-        if not PreviewManager.Enabled then return end
-        if not previewGui then createPreviewGui() end
-        if not previewGui.Enabled then previewGui.Enabled = true end
+    local dragBeginConn, dragChangedConn, dragEndConn
 
+    local function setupDrag()
+        if dragBeginConn then return end
+        
+        dragBeginConn = UserInputService.InputBegan:Connect(function(input)
+            if not PreviewManager.Enabled then return end
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local mousePos = UserInputService:GetMouseLocation() - GuiService:GetGuiInset()
+                local role = PreviewManager.Role
+                
+                if (role == "Survivor" or role == "Both") and previewObjs.Survivor and previewObjs.Survivor.Bg.Visible then
+                    local bg = previewObjs.Survivor.Bg
+                    if mousePos.X >= bg.Position.X and mousePos.X <= bg.Position.X + bg.Size.X and mousePos.Y >= bg.Position.Y and mousePos.Y <= bg.Position.Y + bg.Size.Y then
+                        draggingPreview = "Survivor"
+                        dragStartMouse = mousePos
+                        dragStartCenter = previewCenters.Survivor
+                        return
+                    end
+                end
+                
+                if (role == "Killer" or role == "Both") and previewObjs.Killer and previewObjs.Killer.Bg.Visible then
+                    local bg = previewObjs.Killer.Bg
+                    if mousePos.X >= bg.Position.X and mousePos.X <= bg.Position.X + bg.Size.X and mousePos.Y >= bg.Position.Y and mousePos.Y <= bg.Position.Y + bg.Size.Y then
+                        draggingPreview = "Killer"
+                        dragStartMouse = mousePos
+                        dragStartCenter = previewCenters.Killer
+                        return
+                    end
+                end
+            end
+        end)
+
+        dragChangedConn = UserInputService.InputChanged:Connect(function(input)
+            if draggingPreview and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local mousePos = UserInputService:GetMouseLocation() - GuiService:GetGuiInset()
+                local delta = mousePos - dragStartMouse
+                previewCenters[draggingPreview] = dragStartCenter + delta
+            end
+        end)
+
+        dragEndConn = UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                draggingPreview = nil
+            end
+        end)
+    end
+
+    local function updatePreview()
         local role = PreviewManager.Role
+        local vp = Camera.ViewportSize
+        
+        if role == "Both" and previewCenters.Survivor == previewCenters.Killer then
+            previewCenters.Survivor = Vector2.new(vp.X * 0.3, vp.Y * 0.35)
+            previewCenters.Killer = Vector2.new(vp.X * 0.7, vp.Y * 0.35)
+        end
+        
         local survCfg = getRoleCfg("Survivor")
         local killCfg = getRoleCfg("Killer")
-
-        -- Width is 130 for one, 280 for both. Height is always 248.
-        local targetSizeX = (role == "Both") and 280 or 130
-        local targetSizeY = 248
-        if previewFrame.Size.X.Offset ~= targetSizeX or previewFrame.Size.Y.Offset ~= targetSizeY then
-            previewFrame.Size = UDim2.new(0, targetSizeX, 0, targetSizeY)
-        end
-
-        local framePos = previewFrame.AbsolutePosition
-        local frameSize = previewFrame.AbsoluteSize
         
-        -- Vertically center the 208px tall ESP block inside the frame
-        local espTotalHeight = 208
-        local boxY = framePos.Y + (frameSize.Y - espTotalHeight) / 2
-        local frameBottomY = framePos.Y + frameSize.Y
-
         if role == "Survivor" or role == "Both" then
             if not previewObjs.Survivor then previewObjs.Survivor = createPreviewObj() end
-            local centerX = framePos.X + (role == "Both" and (frameSize.X * 0.25) or (frameSize.X * 0.5))
-            drawPreviewESP(previewObjs.Survivor, survCfg, "Survivor", centerX, boxY, frameBottomY)
+            local c = previewCenters.Survivor
+            drawPreviewESP(previewObjs.Survivor, survCfg, "Survivor", c.X, c.Y)
         else
             if previewObjs.Survivor then hidePreviewObj(previewObjs.Survivor) end
         end
         
         if role == "Killer" or role == "Both" then
             if not previewObjs.Killer then previewObjs.Killer = createPreviewObj() end
-            local centerX = framePos.X + (role == "Both" and (frameSize.X * 0.75) or (frameSize.X * 0.5))
-            drawPreviewESP(previewObjs.Killer, killCfg, "Killer", centerX, boxY, frameBottomY)
+            local c = previewCenters.Killer
+            drawPreviewESP(previewObjs.Killer, killCfg, "Killer", c.X, c.Y)
         else
             if previewObjs.Killer then hidePreviewObj(previewObjs.Killer) end
         end
@@ -345,10 +352,12 @@ local PreviewManager = {} do
     local renderConn
     local function startRenderLoop()
         if renderConn then return end
+        setupDrag()
         renderConn = RunService.RenderStepped:Connect(function()
             if not PreviewManager.Enabled then
-                if previewGui then previewGui.Enabled = false end
-                for _, obj in pairs(previewObjs) do hidePreviewObj(obj) end
+                for _, obj in pairs(previewObjs) do
+                    hidePreviewObj(obj)
+                end
                 return
             end
             updatePreview()
@@ -368,8 +377,9 @@ local PreviewManager = {} do
         if state then
             startRenderLoop()
         else
-            if previewGui then previewGui.Enabled = false end
-            for _, obj in pairs(previewObjs) do hidePreviewObj(obj) end
+            for _, obj in pairs(previewObjs) do
+                hidePreviewObj(obj)
+            end
         end
     end
 
@@ -400,7 +410,9 @@ local PreviewManager = {} do
 
     function PreviewManager:Unload()
         if renderConn then renderConn:Disconnect() renderConn = nil end
-        if previewGui then previewGui:Destroy() previewGui = nil end
+        if dragBeginConn then dragBeginConn:Disconnect() dragBeginConn = nil end
+        if dragChangedConn then dragChangedConn:Disconnect() dragChangedConn = nil end
+        if dragEndConn then dragEndConn:Disconnect() dragEndConn = nil end
         
         for _, obj in pairs(previewObjs) do
             destroyPreviewObj(obj)
